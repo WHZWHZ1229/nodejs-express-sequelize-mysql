@@ -3,26 +3,38 @@ module.exports = app => {
 
   var router = require("express").Router();
 
-  // Create a new Tutorial
-  router.post("/", tutorials.create);
+  router.get("/login-test",tutorials.loginTest);
 
-  // Retrieve all Tutorials
-  router.get("/", tutorials.findAll);
+  router.get("/op/leave-get",tutorials.getLeave);
 
-  // Retrieve all published Tutorials
-  router.get("/published", tutorials.findAllPublished);
+  router.post("/login",tutorials.login);
 
-  // Retrieve a single Tutorial with id
-  router.get("/:id", tutorials.findOne);
+//   // Create a new Tutorial
+//   router.post("/", tutorials.create);
+//
+//   // Retrieve all Tutorials
+//   router.get("/", tutorials.findAll);
+//
+//   // Retrieve all published Tutorials
+//   router.get("/published", tutorials.findAllPublished);
+//
+//   // Retrieve a single Tutorial with id
+//   router.get("/:id", tutorials.findOne);
+//
+//   // Update a Tutorial with id
+//   router.put("/:id", tutorials.update);
+//
+//   // Delete a Tutorial with id
+//   router.delete("/:id", tutorials.delete);
+// ``
+//   // Delete all Tutorials
+//   router.delete("/", tutorials.deleteAll);
 
-  // Update a Tutorial with id
-  router.put("/:id", tutorials.update);
+  router.get("/login/session", tutorials.loadSession);
 
-  // Delete a Tutorial with id
-  router.delete("/:id", tutorials.delete);
+  router.get("/op/logout", tutorials.logout);
 
-  // Delete all Tutorials
-  router.delete("/", tutorials.deleteAll);
+  router.post("/op/leave-create", tutorials.createLeave);
 
-  app.use('/api/tutorials', router);
+  app.use('/api', router);
 };
