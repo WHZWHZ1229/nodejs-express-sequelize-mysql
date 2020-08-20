@@ -7,6 +7,8 @@ module.exports = app => {
 
   router.get("/op/leave-get",tutorials.getLeave);
 
+  router.get("/op/processing-leave-get",tutorials.getProcessingLeave);
+
   router.post("/login",tutorials.login);
 
 //   // Create a new Tutorial
@@ -35,6 +37,16 @@ module.exports = app => {
   router.get("/op/logout", tutorials.logout);
 
   router.post("/op/leave-create", tutorials.createLeave);
+
+  router.post("/op/leave-modification", tutorials.modifyLeave);
+
+  router.post("/op/cancel-leave", tutorials.cancelLeave);
+
+  router.get("/op/approve-leave-get", tutorials.getApproveLeave);
+
+  router.post("/op/approve-leave", tutorials.approveLeave);
+
+  router.get("/op/remain-days-get", tutorials.getRemainDays);
 
   app.use('/api', router);
 };

@@ -5,6 +5,92 @@ const User = db.User
 const LeaveInfo = db.LeaveInfo
 const Op = db.Sequelize.Op;
 
+exports.getRemainDays = (req, res) => {
+    const id = req.query.id;
+
+    User.findByPk(id)
+        .then(data => {
+            res.send({ret_code:0,ret_msg: {remainDays:data.dayRemain}});
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).send({ret_code:1,ret_msg: 'User error'});
+        });
+};
+
+exports.approveLeave = (req, res) => {
+    const id = req.body.id;
+
+    LeaveInfo.update({processed:true}, {
+        where: {id: id}
+    })
+        .then(num => {
+            if (num == 1) {
+                res.send({
+                    ret_code:0,
+                    ret_msg: "updated successfully."
+                });
+            } else {
+                res.send({
+                    ret_code:1,
+                    ret_msg: "updated error."
+                });
+            }
+        })
+        .catch(err => {
+            console.log(err)
+            res.send({
+                ret_code:1,
+                ret_msg: "updated error."
+            });
+        });
+};
+
+exports.cancelLeave = (req, res) => {
+    const id = req.body.id;
+    const applier = req.body.applier;
+
+    LeaveInfo.destroy({
+        where: {id: id}
+    })
+        .then(num => {
+            if (num == 1) {
+                User.findByPk(req.body.applier)
+                    .then(data => {
+                        const currentDays = data.dayRemain
+                        const changedDays = currentDays + req.body.days
+                        User.update({dayRemain: changedDays}, {
+                            where: {id: applier}
+                        })
+                            .then(num => {
+                                console.log('updated user')
+                                res.send({ret_code: 0, ret_msg: "submitted"});
+                            })
+                            .catch(err => {
+                                console.log(err)
+                                res.status(500).send({ret_code: 1, ret_msg: "Error"});
+                            });
+                    })
+                    .catch(err => {
+                        console.log(err)
+                        res.status(500).send({ret_code: 1, ret_msg: "Error"});
+                    });
+            } else {
+                res.send({
+                    ret_code:1,
+                    ret_msg:"delete error"
+                });
+            }
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).send({
+                ret_code:1,
+                ret_msg:"delete error"
+            });
+        });
+};
+
 exports.getLeave = (req, res) => {
     const applier = req.query.applier;
     LeaveInfo.findAll({where: {applier: applier}, raw: true, order: [ ['updatedAt',  'DESC'] ]})
@@ -15,6 +101,94 @@ exports.getLeave = (req, res) => {
             console.log(err)
             res.status(500).send({ret_code: 1, ret_msg: "Error"});
         });
+};
+
+exports.getProcessingLeave = (req, res) => {
+    const applier = req.query.applier;
+    LeaveInfo.findAll({where: {applier: applier, processed: false}, raw: true, order: [ ['updatedAt',  'DESC'] ]})
+        .then(data => {
+            res.send({ret_code: 0, ret_msg: data});
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).send({ret_code: 1, ret_msg: "Error"});
+        });
+};
+
+exports.getApproveLeave = (req, res) => {
+    const supervisor = req.query.supervisor;
+    LeaveInfo.findAll({where: {supervisor: supervisor, processed: false}, raw: true, order: [ ['updatedAt',  'DESC'] ]})
+        .then(data => {
+            res.send({ret_code: 0, ret_msg: data});
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).send({ret_code: 1, ret_msg: "Error"});
+        });
+};
+
+exports.getProcessingLeave = (req, res) => {
+    const applier = req.query.applier;
+    LeaveInfo.findAll({where: {applier: applier, processed: false}, raw: true, order: [ ['updatedAt',  'DESC'] ]})
+        .then(data => {
+            res.send({ret_code: 0, ret_msg: data});
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).send({ret_code: 1, ret_msg: "Error"});
+        });
+};
+
+exports.modifyLeave = (req, res) => {
+    // Create a Tutorial
+    const LeaveInfoDetail = {
+        leaveType: req.body.leaveType,
+        startAt: req.body.dateValue[0],
+        endAt: req.body.dateValue[1],
+        description: req.body.desc,
+        processed: false,
+        days: req.body.daysOfLeave,
+        supervisor: req.body.approvalEmail,
+        applier: req.body.applier,
+    };
+    const leaveId = req.body.leaveId
+    const previousDays = req.body.prevDays
+    User.findByPk(req.body.applier).then(data => {
+        const currentDays = data.dayRemain
+        const changedDays = currentDays + previousDays - req.body.daysOfLeave
+        if (changedDays < 0) {
+            res.send({
+                ret_code: 1, ret_msg: "application days exceeded limits"
+            });
+            return;
+        }
+        LeaveInfo.update(LeaveInfoDetail, {
+            where: {id: leaveId}
+        }).then(data => {
+                const id = req.body.applier
+                User.update({dayRemain: changedDays}, {
+                    where: {id: id}
+                })
+                    .then(num => {
+                        console.log('updated user')
+                        res.send({ret_code: 0, ret_msg: "submitted"});
+                    })
+                    .catch(err => {
+                        console.log(err)
+                        res.status(500).send({ret_code: 1, ret_msg: "Error"});
+                    });
+            })
+            .catch(err => {
+                console.log(err)
+                res.status(500).send({ret_code: 1, ret_msg: "Error"});
+            });
+
+    })
+        .catch(err => {
+            console.log(err)
+            res.status(500).send({ret_code: 1, ret_msg: "Error"});
+        });
+
 };
 
 exports.createLeave = (req, res) => {
